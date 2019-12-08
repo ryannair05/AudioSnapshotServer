@@ -6,11 +6,11 @@ TCP/IP server to fetch audio buffer's snapshot from mediaserverd.
 
 ## Installation
 
-**iOS 11.0-11.1.2 required.**
+**iOS 11.0-13.2.3 required.**
 
-**This tweak by itself does nothing noticeable. A client tweak is neccessary for visible effects - try [MitsuhaXI](https://github.com/Nepeta/MitsuhaXI/)**
+**This tweak by itself does nothing noticeable. A client tweak is neccessary for visible effects - try [Mitsuha Forever](https://github.com/ConorTheDev/MitsuhaForever/)**
 
-1. Add this repository to Cydia: https://repo.nepeta.me/
+1. Add this repository to Cydia: https://conorthedev.github.io/repo.
 2. Install AudioSnapshotServer.
 
 ## How to use it in your tweak?
@@ -19,4 +19,4 @@ If you send anything to localhost at the port 43333 it will reply with a dump of
 
 ## Bugs
 
-Feel free to [open a new issue](https://github.com/Nepeta/AudioSnapshotServer/issues/new).
+For support / to report a bug [join my discord server](https://oh-my-god.wtf/conorthedev)
