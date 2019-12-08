@@ -10,9 +10,15 @@ float *empty = NULL;
     AudioComponentDescription unitDescription = {0};
     AudioComponentGetDescription(AudioComponentInstanceGetComponent(unit), &unitDescription);
     
-    if (unitDescription.componentSubType == 'mcmx') {
+    if (unitDescription.componentSubType == 'mcmx' || unitDescription.componentSubType == 'aumx' || unitDescription.componentSubType == 'aapl') {
         if (inNumberFrames > 0) {
             p_bufferlist = ioData;
+
+            int channelCount = 1;
+            p_bufferlist->mNumberBuffers = channelCount;
+
+            NSLog(@"[ASS] p_bufferlist Data: %@", p_bufferlist);
+            NSLog(@"[ASS] channel count: %d", channelCount);
         } else {
             p_bufferlist = NULL;
         }
