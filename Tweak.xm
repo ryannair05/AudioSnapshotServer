@@ -1,7 +1,7 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <arpa/inet.h>
 #import <sys/time.h>
-#define ASSPort 43333
+#define ASSPort 44333
 
 AudioBufferList *p_bufferlist = NULL;
 float *empty = NULL;
@@ -23,7 +23,7 @@ float *empty = NULL;
 
 void handle_connection(int connfd)
 {
-    NSLog(@"[ASS] [%d] Connection opened.", connfd);
+    NSLog(@"[ThiccASS] [%d] Connection opened.", connfd);
     struct timeval tv;
     tv.tv_sec = 5;
     tv.tv_usec = 0;
@@ -79,12 +79,12 @@ void handle_connection(int connfd)
         }
     }
 
-    NSLog(@"[ASS] [%d] Connection closed.", connfd);
+    NSLog(@"[ThiccASS] [%d] Connection closed.", connfd);
 }
 
 void server()
 {
-    NSLog(@"[ASS] Server created...");
+    NSLog(@"[ThiccASS] Server created...");
     struct sockaddr_in local;
     local.sin_family = AF_INET;
     local.sin_addr.s_addr = htonl(INADDR_LOOPBACK); //INADDR_ANY if you want to expose audio output
@@ -96,7 +96,7 @@ void server()
         r = bind(listenfd, (struct sockaddr*)&local, sizeof(local));
         usleep(200 * 1000);
     }
-    NSLog(@"[ASS] Bound");
+    NSLog(@"[ThiccASS] Bound");
 
     int one = 1;
     setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
@@ -108,7 +108,7 @@ void server()
         r = listen(listenfd, 20);
         usleep(200 * 1000);
     }
-    NSLog(@"[ASS] Listening");
+    NSLog(@"[ThiccASS] Listening");
 
     while(true) {
         int connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
@@ -127,10 +127,16 @@ void server()
 }
 
 %ctor {
-    empty = (float *)malloc(sizeof(float));
-    empty[0] = 0.0f;
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        server();
-    });
-    %init;
+    NSString *identifier = [[NSProcessInfo processInfo] processName];
+    if([identifier isEqualToString:@"FaceTime"] || [identifier isEqualToString:@"com.apple.facetime"] || [identifier isEqualToString:@"com.apple.camera"] || [identifier isEqualToString:@"Camera"]) {
+        NSLog(@"[ThiccASS] Not injecting into FaceTime or Camera... exiting!");
+        return;
+    } else {
+        empty = (float *)malloc(sizeof(float));
+        empty[0] = 0.0f;
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            server();
+        });
+        %init;
+    }
 }
