@@ -1,6 +1,6 @@
 # ThiccASS
 
-TWEAK_NAME="ThiccAudioSnapshotServer"
+TWEAK_NAME="ThiccASS"
 
 MINIOS="10.0"
 ARCHS="armv7 arm64 arm64e"
