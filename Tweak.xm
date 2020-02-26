@@ -10,7 +10,7 @@ float *empty = NULL;
     AudioComponentDescription unitDescription = {0};
     AudioComponentGetDescription(AudioComponentInstanceGetComponent(unit), &unitDescription);
     
-    if (unitDescription.componentSubType == 'mcmx' || unitDescription.componentSubType == 'aumx' || unitDescription.componentSubType == 'aapl') {
+    if (unitDescription.componentSubType == 'mcmx' /*|| unitDescription.componentSubType == 'aumx' || unitDescription.componentSubType == 'aapl'*/) {
         if (inNumberFrames > 0) {
             p_bufferlist = ioData;
         } else {
@@ -21,8 +21,7 @@ float *empty = NULL;
     return %orig;
 }
 
-void handle_connection(int connfd)
-{
+void handle_connection(int connfd) {
     NSLog(@"[ThiccASS] [%d] Connection opened.", connfd);
     struct timeval tv;
     tv.tv_sec = 5;
@@ -82,8 +81,7 @@ void handle_connection(int connfd)
     NSLog(@"[ThiccASS] [%d] Connection closed.", connfd);
 }
 
-void server()
-{
+void server() {
     NSLog(@"[ThiccASS] Server created...");
     struct sockaddr_in local;
     local.sin_family = AF_INET;
