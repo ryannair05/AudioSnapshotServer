@@ -5,7 +5,7 @@ DEBUG = 0
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = ThiccASS
+TWEAK_NAME = AudioSnapshotServer
 $(TWEAK_NAME)_FILES = Tweak.xm
 
 include $(THEOS_MAKE_PATH)/tweak.mk
