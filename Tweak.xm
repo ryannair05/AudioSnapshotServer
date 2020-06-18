@@ -126,7 +126,7 @@ void server() {
 
 %ctor {
     NSString *identifier = [[NSProcessInfo processInfo] processName];
-    if([identifier isEqualToString:@"FaceTime"] || [identifier isEqualToString:@"com.apple.facetime"] || [identifier isEqualToString:@"com.apple.camera"] || [identifier isEqualToString:@"Camera"]) {
+    if([identifier isEqualToString:@"FaceTime"] || [identifier isEqualToString:@"InCallService"] || [identifier isEqualToString:@"Camera"]) {
         NSLog(@"[ASS] Not injecting into FaceTime or Camera... exiting!");
         return;
     } else {
