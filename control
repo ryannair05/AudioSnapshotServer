@@ -1,9 +1,10 @@
 Package: com.ryannair05.audiosnapshotserver
 Name: AudioSnapshotServer
-Version: 2.1.1
+Version: 2.1.2
 Architecture: iphoneos-arm
 Description: A modified iOS mediaserverd hook to serve snapshots of current audio buffer via TCP/IP
 Maintainer: Ryan Nair
-Author: Ryan Nair, ConorTheDev, Nepeta
+Author: Ryan Nair and Nepeta
 Section: Development
-Replaces: me.nepeta.audiosnapshotserver, me.conorthedev.audiosnapshotserver
+Replaces: io.ominousness.ass, me.conorthedev.audiosnapshotserver
+Provides: io.ominousness.ass, me.conorthedev.audiosnapshotserver

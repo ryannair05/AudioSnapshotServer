@@ -1,16 +1,19 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <arpa/inet.h>
-#import <sys/time.h>
+#include <os/log.h>
+#include <substrate.h>
+
 #define ASSPort 44333
 
 AudioBufferList *p_bufferlist = NULL;
 float *empty = NULL;
 
-%hookf(OSStatus, AudioUnitRender, AudioUnit unit, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inOutputBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData) {
+OSStatus (*orig_AudioUnitRender)(AudioUnit unit, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inOutputBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData);
+OSStatus function_AudioUnitRender(AudioUnit unit, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inOutputBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData) {
     AudioComponentDescription unitDescription = {0};
     AudioComponentGetDescription(AudioComponentInstanceGetComponent(unit), &unitDescription);
     
-    if (unitDescription.componentSubType == 'mcmx' /*|| unitDescription.componentSubType == 'aumx' || unitDescription.componentSubType == 'aapl'*/) {
+    if (unitDescription.componentSubType == 'mcmx') {
         if (inNumberFrames > 0) {
             p_bufferlist = ioData;
         } else {
@@ -18,11 +21,12 @@ float *empty = NULL;
         }
     }
 
-    return %orig;
+    return orig_AudioUnitRender(unit, ioActionFlags, inTimeStamp, inOutputBusNumber, inNumberFrames, ioData);
 }
 
-void handle_connection(int connfd) {
-    NSLog(@"[ASS] [%d] Connection opened.", connfd);
+void handle_connection(const int connfd) {
+    os_log(OS_LOG_DEFAULT, "[ASS] [%d] Connection opened.", connfd);
+
     struct timeval tv;
     tv.tv_sec = 5;
     tv.tv_usec = 0;
@@ -45,7 +49,7 @@ void handle_connection(int connfd) {
             break;
         }
         
-        // Wait for anything to come from the client.
+        
         rlen = recv(connfd, buffer, sizeof(buffer), 0);
         if (rlen <= 0) {
             if (rlen == 0) {
@@ -54,7 +58,7 @@ void handle_connection(int connfd) {
             break;
         }
 
-        // Send a dump of current audio buffer to the client.
+        
         data = NULL;
 
         if (p_bufferlist != NULL) {
@@ -78,14 +82,15 @@ void handle_connection(int connfd) {
         }
     }
 
-    NSLog(@"[ASS] [%d] Connection closed.", connfd);
+    os_log(OS_LOG_DEFAULT, "[ASS] [%d] Connection closed.", connfd);
 }
 
 void server() {
-    NSLog(@"[ASS] Server created...");
+    os_log(OS_LOG_DEFAULT, "[ASS] Server created...");
     struct sockaddr_in local;
+    memset(&local, 0, sizeof(local));
     local.sin_family = AF_INET;
-    local.sin_addr.s_addr = htonl(INADDR_LOOPBACK); //INADDR_ANY if you want to expose audio output
+    local.sin_addr.s_addr = htonl(INADDR_LOOPBACK); 
     local.sin_port = htons(ASSPort);
     int listenfd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -94,9 +99,9 @@ void server() {
         r = bind(listenfd, (struct sockaddr*)&local, sizeof(local));
         usleep(200 * 1000);
     }
-    NSLog(@"[ASS] Bound");
+    os_log(OS_LOG_DEFAULT, "[ASSWatchdog] abort, there's no ASS here...");
 
-    int one = 1;
+    const int one = 1;
     setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
     setsockopt(listenfd, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one));
     setsockopt(listenfd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one));
@@ -106,10 +111,10 @@ void server() {
         r = listen(listenfd, 20);
         usleep(200 * 1000);
     }
-    NSLog(@"[ASS] Listening");
+    os_log(OS_LOG_DEFAULT, "[ASS] Listening");
 
     while(true) {
-        int connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
+        const int connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
         if (connfd > 0) {
             struct timeval tv;
             tv.tv_sec = 5;
@@ -124,17 +129,15 @@ void server() {
     }
 }
 
-%ctor {
-    NSString *identifier = [[NSProcessInfo processInfo] processName];
-    if([identifier isEqualToString:@"FaceTime"] || [identifier isEqualToString:@"InCallService"] || [identifier isEqualToString:@"Camera"]) {
-        NSLog(@"[ASS] Not injecting into FaceTime or Camera... exiting!");
-        return;
-    } else {
-        empty = (float *)malloc(sizeof(float));
-        empty[0] = 0.0f;
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            server();
-        });
-        %init;
-    }
+__attribute__((constructor)) void Init() {
+    empty = (float *)malloc(sizeof(float));
+    empty[0] = 0.0f;
+
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        server();
+    });
+
+    free(empty);
+    
+    MSHookFunction((void *)AudioUnitRender, (void *)&function_AudioUnitRender, (void **)&orig_AudioUnitRender);
 }
