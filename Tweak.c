@@ -49,7 +49,7 @@ void handle_connection(const int connfd) {
             break;
         }
         
-        
+        // Wait for anything to come from the client.
         rlen = recv(connfd, buffer, sizeof(buffer), 0);
         if (rlen <= 0) {
             if (rlen == 0) {
@@ -58,7 +58,7 @@ void handle_connection(const int connfd) {
             break;
         }
 
-        
+        // Send a dump of current audio buffer to the client.
         data = NULL;
 
         if (p_bufferlist != NULL) {
@@ -90,7 +90,7 @@ void server() {
     struct sockaddr_in local;
     memset(&local, 0, sizeof(local));
     local.sin_family = AF_INET;
-    local.sin_addr.s_addr = htonl(INADDR_LOOPBACK); 
+    local.sin_addr.s_addr = htonl(INADDR_LOOPBACK); //INADDR_ANY if you want to expose audio output
     local.sin_port = htons(ASSPort);
     int listenfd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
